@@ -25,12 +25,12 @@ Results are evaluated using **Weighted Average** for Precision, Recall, and F1-s
 
 | ML Model Name | Accuracy | AUC (OvR) | Precision (W) | Recall (W) | F1 (W) | MCC |
 |---|---|---|---|---|---|---|
-| Logistic Regression | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] |
-| Decision Tree | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] |
-| kNN | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] |
-| Naive Bayes | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] |
-| Random Forest | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] |
-| XGBoost | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] | [VAL] |
+| Logistic Regression | 0.9216 | 0.9931 | 0.9225 | 0.9216 | 0.9218 | 0.9054 |
+| Decision Tree | 0.8923 | 0.9335 | 0.8920 | 0.8923 | 0.8920 | 0.8698 |
+| kNN | 0.9167 | 0.9814 | 0.9174 | 0.9167 | 0.9169 | 0.8993 |
+| Naive Bayes | 0.9011 | 0.9902 | 0.9041 | 0.9011 | 0.9012 | 0.8812 |
+| Random Forest | 0.9212 | 0.9910 | 0.9213 | 0.9212 | 0.9212 | 0.9046 |
+| XGBoost | 0.9226 | 0.9937 | 0.9229 | 0.9226 | 0.9228 | 0.9064 |
 
 ## Project Structure
 - `app.py`: Streamlit application file.
