@@ -6,3 +6,5 @@ matplotlib
 seaborn
 xgboost
 joblib
+ucimlrepo
+openpyxl

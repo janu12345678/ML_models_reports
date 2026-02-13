@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-from sklearn.datasets import load_breast_cancer
+from ucimlrepo import fetch_ucirepo
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 import joblib
@@ -11,12 +11,18 @@ import os
 # Create directories if they don't exist
 os.makedirs('../model', exist_ok=True)
 
-# 1. Load Dataset
-data = load_breast_cancer()
-X = pd.DataFrame(data.data, columns=data.feature_names)
-y = pd.Series(data.target, name='target')
+# 1. Load Dataset (Dry Bean - ID 602)
+print("Fetching Dry Bean Dataset...")
+dry_bean_dataset = fetch_ucirepo(id=602)
+X = dry_bean_dataset.data.features
+y = dry_bean_dataset.data.targets
 
-# 2. Split Data
+# Encode Target
+le = LabelEncoder()
+y_encoded = le.fit_transform(y.values.ravel())
+y = pd.Series(y_encoded, name='Class')
+
+# 2. Split Data (85/15)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42, stratify=y)
 
 # 3. Preprocessing
@@ -29,7 +35,7 @@ joblib.dump(scaler, '../model/scaler.pkl')
 
 # 4. Train Logistic Regression
 print("Training Logistic Regression...")
-model = LogisticRegression(random_state=42, max_iter=1000)
+model = LogisticRegression(random_state=42, max_iter=2000, multi_class='multinomial')
 model.fit(X_train_scaled, y_train)
 
 # 5. Evaluate

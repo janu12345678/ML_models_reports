@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
-from sklearn.datasets import load_breast_cancer
+from ucimlrepo import fetch_ucirepo
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -17,22 +17,31 @@ import os
 os.makedirs('model', exist_ok=True)
 os.makedirs('data', exist_ok=True)
 
-# 1. Load Dataset
-data = load_breast_cancer()
-X = pd.DataFrame(data.data, columns=data.feature_names)
-y = pd.Series(data.target, name='target')
+# 1. Load Dataset (Dry Bean Dataset - ID 602)
+print("Fetching Dry Bean Dataset...")
+dry_bean_dataset = fetch_ucirepo(id=602)
+X = dry_bean_dataset.data.features
+y = dry_bean_dataset.data.targets
 
 print(f"Dataset Shape: {X.shape}")
 print(f"Target distribution:\n{y.value_counts()}")
 
-# 2. Split Data
+# Encode Target (Multiclass)
+le = LabelEncoder()
+y_encoded = le.fit_transform(y.values.ravel())
+y = pd.Series(y_encoded, name='Class') # 'Class' is the target name in UCI
+
+# Save LabelEncoder for app
+joblib.dump(le, 'model/label_encoder.pkl')
+
+# 2. Split Data (85/15)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.15, random_state=42, stratify=y)
 
 # Save test data for Streamlit upload feature
 test_data = X_test.copy()
-test_data['target'] = y_test
-test_data.to_csv('data/test_data.csv', index=False)
-print("Test data saved to data/test_data.csv")
+test_data['Class'] = y_test # Using encoded labels for logic consistency, or could use original if we decode. Let's keep numeric for ML flow
+test_data.to_csv('data/dry_bean_test_data.csv', index=False)
+print("Test data saved to data/dry_bean_test_data.csv")
 
 # 3. Preprocessing
 scaler = StandardScaler()
@@ -44,12 +53,12 @@ joblib.dump(scaler, 'model/scaler.pkl')
 
 # 4. Define Models
 models = {
-    "Logistic Regression": LogisticRegression(random_state=42, max_iter=1000),
+    "Logistic Regression": LogisticRegression(random_state=42, max_iter=2000, multi_class='multinomial'),
     "Decision Tree": DecisionTreeClassifier(random_state=42),
     "KNN": KNeighborsClassifier(),
     "Naive Bayes": GaussianNB(),
     "Random Forest": RandomForestClassifier(random_state=42),
-    "XGBoost": XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+    "XGBoost": XGBClassifier(use_label_encoder=False, eval_metric='mlogloss', random_state=42) # mlogloss for multiclass
 }
 
 # 5. Train and Evaluate
@@ -61,14 +70,15 @@ for name, model in models.items():
     
     # Predictions
     y_pred = model.predict(X_test_scaled)
-    y_prob = model.predict_proba(X_test_scaled)[:, 1] if hasattr(model, "predict_proba") else y_pred # KNN might not have predict_proba by default depending on version, generic handle
+    y_prob = model.predict_proba(X_test_scaled) if hasattr(model, "predict_proba") else None
     
-    # Calculate Metrics
+    # Calculate Metrics (Multiclass: weighted average)
     acc = accuracy_score(y_test, y_pred)
-    auc = roc_auc_score(y_test, y_prob)
-    prec = precision_score(y_test, y_pred)
-    rec = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    # AUC for multiclass requires ovr/ovo
+    auc = roc_auc_score(y_test, y_prob, multi_class='ovr', average='weighted') if y_prob is not None else "N/A"
+    prec = precision_score(y_test, y_pred, average='weighted')
+    rec = recall_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='weighted')
     mcc = matthews_corrcoef(y_test, y_pred)
     
     results.append({
