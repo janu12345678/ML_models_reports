@@ -8,9 +8,6 @@ from sklearn.metrics import accuracy_score, classification_report
 import joblib
 import os
 
-# Create directories if they don't exist
-os.makedirs('../model', exist_ok=True)
-
 # 1. Load Dataset (Dry Bean - ID 602)
 print("Fetching Dry Bean Dataset...")
 dry_bean_dataset = fetch_ucirepo(id=602)
